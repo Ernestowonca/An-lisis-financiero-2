@@ -1,0 +1,32 @@
+import yfinance as yf
+import streamlit as st
+import matplotlib.pyplot as plt
+
+st.set_page_config(layout="wide")
+st.title("Análisis Financiero con Medias Móviles Semanales")
+
+ticker = st.text_input("Ingresá el ticker (ej: AAPL, TSLA, MELI):").upper()
+
+if ticker:
+    empresa = yf.Ticker(ticker)
+    info = empresa.info
+    hist = empresa.history(period="5y", interval="1wk")
+    hist["SMA30"] = hist["Close"].rolling(window=30).mean()
+    hist["SMA50"] = hist["Close"].rolling(window=50).mean()
+    hist["SMA200"] = hist["Close"].rolling(window=200).mean()
+
+    st.subheader("Datos Fundamentales")
+    st.write("Nombre:", info.get("longName", "No disponible"))
+    st.write("Precio actual:", info.get("currentPrice", "No disponible"))
+    st.write("PER:", info.get("trailingPE", "No disponible"))
+    st.write("ROE:", info.get("returnOnEquity", "No disponible"))
+
+    st.subheader("Gráfico con medias móviles")
+    fig, ax = plt.subplots(figsize=(12, 6))
+    ax.plot(hist["Close"], label="Precio")
+    ax.plot(hist["SMA30"], label="SMA30")
+    ax.plot(hist["SMA50"], label="SMA50")
+    ax.plot(hist["SMA200"], label="SMA200")
+    ax.legend()
+    ax.set_title(f"{ticker} - Medias móviles semanales")
+    st.pyplot(fig)
